@@ -2,29 +2,155 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сны при температуре 40</title>
-    <link rel="stylesheet" href="game/css/style.css">
+    <style>
+        /* Стили CSS */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace; /* Пиксельный вайб */
+        }
+
+        /* Фоновое изображение */
+        #bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('img/001.png') no-repeat center center;
+            background-size: cover;
+            z-index: -1;
+        }
+
+        .container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 60vh; /* Распределяем контент */
+            z-index: 1;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin: 0;
+            /* Эффект свечения и пиксельной тени */
+            text-shadow: 4px 4px 0px #ff0000, -4px -4px 0px #0000ff;
+            animation: flicker 3s infinite;
+        }
+
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Стиль кнопок */
+        .pixel-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 3px solid #fff;
+            color: #fff;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            position: relative;
+            outline: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .pixel-button:hover {
+            background-color: #fff;
+            color: #000;
+            box-shadow: 0 0 15px #fff;
+            transform: scale(1.05);
+        }
+
+        .pixel-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Анимация мерцания для названия */
+        @keyframes flicker {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            55% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+
+        /* Отключаем кнопку продолжить, если нет сохранений */
+        .disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+    </style>
 </head>
-<body class="menu-bg">
-    <div class="menu-container">
-        <h1>СНЫ ПРИ ТЕМПЕРАТУРЕ 40</h1>
+<body>
+
+    <div id="bg"></div>
+
+    <!-- Аудио с повтором -->
+    <audio id="bg-music" loop>
+        <source src="mus/background.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="container">
+        <h1>Сны при<br>температуре 40</h1>
+
         <nav>
-            <button onclick="location.href='game/001.html'">Играть</button>
-            <button id="continue-btn" onclick="continueGame()">Продолжить</button>
-            <button onclick="location.href='info.html'">О разработчике</button>
+            <button class="pixel-button" onclick="startGame()">Играть</button>
+            <button id="continue-btn" class="pixel-button" onclick="continueGame()">Продолжить</button>
+            <button class="pixel-button" onclick="window.location.href='info.html'">О разработчике</button>
         </nav>
     </div>
 
     <script>
-        function continueGame() {
-            const lastPage = localStorage.getItem('last_save') || 'game/001.html';
-            location.href = lastPage;
+        // Логика JS
+        const music = document.getElementById('bg-music');
+        const continueBtn = document.getElementById('continue-btn');
+
+        // Проверяем наличие сохранения при загрузке
+        window.onload = () => {
+            if (!localStorage.getItem('last_save')) {
+                continueBtn.classList.add('disabled');
+            }
+        };
+
+        function startGame() {
+            // Пытаемся включить музыку перед переходом (многие браузеры позволяют это после клика)
+            music.play().catch(e => console.log("Музыка ждет взаимодействия"));
+            
+            // Задержка в полсекунды для эффекта нажатия и перехода
+            setTimeout(() => {
+                window.location.href = 'game/001.html';
+            }, 300);
         }
 
-        // Если сохранений нет, кнопка "Продолжить" полупрозрачная
-        if (!localStorage.getItem('last_save')) {
-            document.getElementById('continue-btn').style.opacity = "0.5";
+        function continueGame() {
+            const lastPage = localStorage.getItem('last_save') || 'game/001.html';
+            window.location.href = lastPage;
         }
+
+        // Параллакс эффект для фона при движении мышки
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+            document.getElementById('bg').style.transform = `scale(1.1) translate(${moveX}px, ${moveY}px)`;
+        });
     </script>
 </body>
 </html>
