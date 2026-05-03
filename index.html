@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Сны при температуре 40</title>
+    <link rel="stylesheet" href="game/css/style.css">
+</head>
+<body class="menu-bg">
+    <div class="menu-container">
+        <h1>СНЫ ПРИ ТЕМПЕРАТУРЕ 40</h1>
+        <nav>
+            <button onclick="location.href='game/001.html'">Играть</button>
+            <button id="continue-btn" onclick="continueGame()">Продолжить</button>
+            <button onclick="location.href='info.html'">О разработчике</button>
+        </nav>
+    </div>
+
+    <script>
+        function continueGame() {
+            const lastPage = localStorage.getItem('last_save') || 'game/001.html';
+            location.href = lastPage;
+        }
+
+        // Если сохранений нет, кнопка "Продолжить" полупрозрачная
+        if (!localStorage.getItem('last_save')) {
+            document.getElementById('continue-btn').style.opacity = "0.5";
+        }
+    </script>
+</body>
+</html>
