@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сны при температуре 40</title>
     <style>
-        /* Стили CSS */
+        /* Общие настройки */
         body, html {
             margin: 0;
             padding: 0;
@@ -16,45 +16,57 @@
             align-items: center;
             overflow: hidden;
             background-color: #000;
-            font-family: 'Courier New', Courier, monospace; /* Пиксельный вайб */
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        /* Фоновое изображение */
-        #bg {
+        /* Контейнер для обоев */
+        #bg-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('img/background.png') no-repeat center center;
-            background-size: cover;
             z-index: -1;
+        }
+
+        /* Одно единственное фото на весь экран */
+        #bg-image {
+            width: 110%; /* Запас 10% для движения (параллакса) */
+            height: 110%;
+            object-fit: cover;
+            position: absolute;
+            top: -5%;
+            left: -5%;
+            filter: brightness(0.4); /* Приглушаем яркость для читаемости меню */
+            transition: transform 0.3s ease-out; /* Плавное движение */
         }
 
         .container {
             text-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            height: 60vh; /* Распределяем контент */
+            justify-content: space-around;
+            height: 80vh; /* Растягиваем, чтобы название было выше, а кнопки ниже */
             z-index: 1;
         }
 
+        /* Название в стиле пикселей */
         h1 {
             color: #fff;
-            font-size: 3rem;
+            font-size: 4rem;
             text-transform: uppercase;
-            letter-spacing: 5px;
-            margin: 0;
-            /* Эффект свечения и пиксельной тени */
-            text-shadow: 4px 4px 0px #ff0000, -4px -4px 0px #0000ff;
-            animation: flicker 3s infinite;
+            letter-spacing: 10px;
+            margin-top: 20px;
+            text-shadow: 5px 5px 0px #ff0000, -5px -5px 0px #0000ff;
+            animation: flicker 4s infinite;
         }
 
+        /* Контейнер кнопок внизу */
         nav {
             display: flex;
             flex-direction: column;
             gap: 15px;
+            margin-bottom: 50px;
         }
 
         /* Стиль кнопок */
@@ -62,38 +74,36 @@
             background-color: rgba(255, 255, 255, 0.1);
             border: 3px solid #fff;
             color: #fff;
-            padding: 15px 30px;
-            font-size: 1.2rem;
+            padding: 18px 40px;
+            font-size: 1.3rem;
             cursor: pointer;
             text-transform: uppercase;
-            transition: all 0.2s;
-            position: relative;
-            outline: none;
+            transition: all 0.3s ease;
             backdrop-filter: blur(5px);
+            box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.2);
         }
 
         .pixel-button:hover {
             background-color: #fff;
             color: #000;
-            box-shadow: 0 0 15px #fff;
-            transform: scale(1.05);
+            box-shadow: 0 0 20px #fff;
+            transform: translateY(-3px);
         }
 
         .pixel-button:active {
-            transform: scale(0.95);
+            transform: translateY(1px);
         }
 
-        /* Анимация мерцания для названия */
+        /* Эффект мерцания названия */
         @keyframes flicker {
-            0% { opacity: 1; }
-            50% { opacity: 0.8; }
-            55% { opacity: 0.9; }
-            100% { opacity: 1; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; transform: scale(1.01); }
+            52% { opacity: 1; }
         }
 
-        /* Отключаем кнопку продолжить, если нет сохранений */
+        /* Стиль для заблокированной кнопки */
         .disabled {
-            opacity: 0.4;
+            opacity: 0.3;
             cursor: not-allowed;
             pointer-events: none;
         }
@@ -101,9 +111,11 @@
 </head>
 <body>
 
-    <div id="bg"></div>
+    <div id="bg-container">
+        <img id="bg-image" src="images/background.png" alt="background" onerror="imageError()">
+    </div>
 
-    <!-- Аудио с повтором -->
+    <!-- Фоновая музыка -->
     <audio id="bg-music" loop>
         <source src="mus/background.mp3" type="audio/mpeg">
     </audio>
@@ -119,37 +131,52 @@
     </div>
 
     <script>
-        // Логика JS
+        const bgImage = document.getElementById('bg-image');
         const music = document.getElementById('bg-music');
         const continueBtn = document.getElementById('continue-btn');
 
-        // Проверяем наличие сохранения при загрузке
+        // Устанавливаем тихую громкость
+        music.volume = 0.2; // 20% громкости (можешь изменить от 0.0 до 1.0)
+
+        // Проверка наличия сохранения при загрузке
         window.onload = () => {
             if (!localStorage.getItem('last_save')) {
                 continueBtn.classList.add('disabled');
             }
         };
 
+        // Запускаем музыку при любом клике на странице
+        let musicStarted = false;
+        function tryStartMusic() {
+            if (!musicStarted) {
+                music.play().catch(e => console.log("Ожидание взаимодействия пользователя"));
+                musicStarted = true;
+            }
+        }
+
+        // Запуск музыки при первом взаимодействии
+        document.addEventListener('click', tryStartMusic, { once: true });
+
         function startGame() {
-            // Пытаемся включить музыку перед переходом (многие браузеры позволяют это после клика)
-            music.play().catch(e => console.log("Музыка ждет взаимодействия"));
+            tryStartMusic(); // Попытка запустить музыку
             
-            // Задержка в полсекунды для эффекта нажатия и перехода
             setTimeout(() => {
                 window.location.href = 'game/001.html';
             }, 300);
         }
 
         function continueGame() {
+            tryStartMusic(); // Попытка запустить музыку
+            
             const lastPage = localStorage.getItem('last_save') || 'game/001.html';
             window.location.href = lastPage;
         }
 
-        // Параллакс эффект для фона при движении мышки
+        // Параллакс эффект для фото (движение за мышкой)
         document.addEventListener('mousemove', (e) => {
-            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
-            document.getElementById('bg').style.transform = `scale(1.1) translate(${moveX}px, ${moveY}px)`;
+            const x = (window.innerWidth / 2 - e.pageX) / 60;
+            const y = (window.innerHeight / 2 - e.pageY) / 60;
+            bgImage.style.transform = `translate(${x}px, ${y}px)`;
         });
     </script>
 </body>
