@@ -15,30 +15,24 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            background-color: #000;
             font-family: 'Courier New', Courier, monospace;
+            /* Вставляем картинку прямо в фон body */
+            background-image: url('https://i.pinimg.com/736x/e6/67/08/e667081c19e9912ca2fa55c105e016fc.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #000; /* Резервный цвет */
         }
 
-        /* Контейнер для обоев */
-        #bg-container {
+        /* Контейнер для параллакса (если все же хочешь движение) */
+        #bg-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-        }
-
-        /* Одно единственное фото на весь экран */
-        #bg-image {
-            width: 110%; /* Запас 10% для движения (параллакса) */
-            height: 110%;
-            object-fit: cover;
-            position: absolute;
-            top: -5%;
-            left: -5%;
-            filter: brightness(0.4); /* Приглушаем яркость для читаемости меню */
-            transition: transform 0.3s ease-out; /* Плавное движение */
+            z-index: 0;
+            /* Мы не будем использовать img, оставим чистый фон body или этот див */
         }
 
         .container {
@@ -46,22 +40,20 @@
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            height: 80vh; /* Растягиваем, чтобы название было выше, а кнопки ниже */
+            height: 80vh;
             z-index: 1;
+            position: relative;
         }
 
-        /* Название в стиле пикселей */
         h1 {
             color: #fff;
             font-size: 4rem;
             text-transform: uppercase;
             letter-spacing: 10px;
-            margin-top: 20px;
             text-shadow: 5px 5px 0px #ff0000, -5px -5px 0px #0000ff;
             animation: flicker 4s infinite;
         }
 
-        /* Контейнер кнопок внизу */
         nav {
             display: flex;
             flex-direction: column;
@@ -69,9 +61,8 @@
             margin-bottom: 50px;
         }
 
-        /* Стиль кнопок */
         .pixel-button {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(0, 0, 0, 0.5); /* Темный фон для читаемости */
             border: 3px solid #fff;
             color: #fff;
             padding: 18px 40px;
@@ -80,42 +71,27 @@
             text-transform: uppercase;
             transition: all 0.3s ease;
             backdrop-filter: blur(5px);
-            box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.2);
         }
 
         .pixel-button:hover {
             background-color: #fff;
             color: #000;
             box-shadow: 0 0 20px #fff;
-            transform: translateY(-3px);
         }
 
-        .pixel-button:active {
-            transform: translateY(1px);
-        }
-
-        /* Эффект мерцания названия */
         @keyframes flicker {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; transform: scale(1.01); }
-            52% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
 
-        /* Стиль для заблокированной кнопки */
         .disabled {
             opacity: 0.3;
-            cursor: not-allowed;
             pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="bg-container">
-        <img id="bg-image" src="images/background.png" alt="background" onerror="imageError()">
-    </div>
-
-    <!-- Фоновая музыка -->
     <audio id="bg-music" loop>
         <source src="mus/background.mp3" type="audio/mpeg">
     </audio>
@@ -131,53 +107,37 @@
     </div>
 
     <script>
-        const bgImage = document.getElementById('bg-image');
         const music = document.getElementById('bg-music');
         const continueBtn = document.getElementById('continue-btn');
 
-        // Устанавливаем тихую громкость
-        music.volume = 0.2; // 20% громкости (можешь изменить от 0.0 до 1.0)
+        if (music) music.volume = 0.2;
 
-        // Проверка наличия сохранения при загрузке
-        window.onload = () => {
+        // Безопасная проверка localStorage
+        try {
             if (!localStorage.getItem('last_save')) {
                 continueBtn.classList.add('disabled');
             }
-        };
-
-        // Запускаем музыку при любом клике на странице
-        let musicStarted = false;
-        function tryStartMusic() {
-            if (!musicStarted) {
-                music.play().catch(e => console.log("Ожидание взаимодействия пользователя"));
-                musicStarted = true;
-            }
+        } catch (e) {
+            console.warn("LocalStorage заблокирован браузером");
         }
 
-        // Запуск музыки при первом взаимодействии
-        document.addEventListener('click', tryStartMusic, { once: true });
-
         function startGame() {
-            tryStartMusic(); // Попытка запустить музыку
-            
-            setTimeout(() => {
-                window.location.href = 'game/001.html';
-            }, 300);
+            if (music) music.play().catch(() => {});
+            setTimeout(() => { window.location.href = 'game/001.html'; }, 300);
         }
 
         function continueGame() {
-            tryStartMusic(); // Попытка запустить музыку
-            
-            const lastPage = localStorage.getItem('last_save') || 'game/001.html';
+            let lastPage = 'game/001.html';
+            try {
+                lastPage = localStorage.getItem('last_save') || 'game/001.html';
+            } catch (e) {}
             window.location.href = lastPage;
         }
 
-        // Параллакс эффект для фото (движение за мышкой)
-        document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.pageX) / 60;
-            const y = (window.innerHeight / 2 - e.pageY) / 60;
-            bgImage.style.transform = `translate(${x}px, ${y}px)`;
-        });
+        // Запуск музыки по первому клику[cite: 2]
+        document.addEventListener('click', () => {
+            if (music) music.play().catch(() => {});
+        }, { once: true });
     </script>
 </body>
 </html>
