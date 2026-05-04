@@ -16,23 +16,36 @@
             align-items: center;
             overflow: hidden;
             font-family: 'Courier New', Courier, monospace;
-            /* Вставляем картинку прямо в фон body */
+            background-color: #000;
+        }
+
+        /* Контейнер для заднего фона с эффектами */
+        .bg-wrapper {
+            position: fixed;
+            top: -5%; /* Запас для движения */
+            left: -5%;
+            width: 110%;
+            height: 110%;
+            z-index: 0;
             background-image: url('https://i.pinimg.com/736x/e6/67/08/e667081c19e9912ca2fa55c105e016fc.jpg');
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
-            background-color: #000; /* Резервный цвет */
+            /* Эффект "плохого качества" и размытия */
+            filter: blur(3px) contrast(1.2) saturate(0.8) brightness(0.6);
+            transition: transform 0.1s ease-out; /* Плавность движения */
         }
 
-        /* Контейнер для параллакса (если все же хочешь движение) */
-        #bg-overlay {
+        /* Наложение шума (пленочное зерно) */
+        .bg-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0;
-            /* Мы не будем использовать img, оставим чистый фон body или этот див */
+            z-index: 1;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Grain_Noise.png');
+            opacity: 0.05;
+            pointer-events: none;
         }
 
         .container {
@@ -41,7 +54,7 @@
             flex-direction: column;
             justify-content: space-around;
             height: 80vh;
-            z-index: 1;
+            z-index: 2;
             position: relative;
         }
 
@@ -50,8 +63,9 @@
             font-size: 4rem;
             text-transform: uppercase;
             letter-spacing: 10px;
-            text-shadow: 5px 5px 0px #ff0000, -5px -5px 0px #0000ff;
-            animation: flicker 4s infinite;
+            /* Глитч-эффект на тексте */
+            text-shadow: 2px 2px 0px #ff0000, -2px -2px 0px #0000ff;
+            animation: drift 10s infinite alternate, flicker 0.15s infinite;
         }
 
         nav {
@@ -62,35 +76,49 @@
         }
 
         .pixel-button {
-            background-color: rgba(0, 0, 0, 0.5); /* Темный фон для читаемости */
-            border: 3px solid #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             color: #fff;
             padding: 18px 40px;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             cursor: pointer;
             text-transform: uppercase;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            letter-spacing: 2px;
         }
 
         .pixel-button:hover {
             background-color: #fff;
             color: #000;
-            box-shadow: 0 0 20px #fff;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
         }
 
+        /* Анимации */
         @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+            0% { opacity: 0.95; }
+            50% { opacity: 1; }
+            100% { opacity: 0.9; }
+        }
+
+        @keyframes drift {
+            from { transform: translateX(-5px); }
+            to { transform: translateX(5px); }
         }
 
         .disabled {
-            opacity: 0.3;
+            opacity: 0.2;
             pointer-events: none;
         }
     </style>
 </head>
 <body>
+
+    <!-- Слой фона -->
+    <div class="bg-wrapper" id="parallax-bg"></div>
+    <!-- Слой шума -->
+    <div class="bg-overlay"></div>
 
     <audio id="bg-music" loop>
         <source src="mus/background.mp3" type="audio/mpeg">
@@ -109,16 +137,23 @@
     <script>
         const music = document.getElementById('bg-music');
         const continueBtn = document.getElementById('continue-btn');
+        const bg = document.getElementById('parallax-bg');
+
+        // Параллакс эффект для мышки
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 30;
+            const y = (window.innerHeight / 2 - e.pageY) / 30;
+            bg.style.transform = `translate(${x}px, ${y}px)`;
+        });
 
         if (music) music.volume = 0.2;
 
-        // Безопасная проверка localStorage
         try {
             if (!localStorage.getItem('last_save')) {
                 continueBtn.classList.add('disabled');
             }
         } catch (e) {
-            console.warn("LocalStorage заблокирован браузером");
+            console.warn("LocalStorage заблокирован");
         }
 
         function startGame() {
@@ -134,7 +169,6 @@
             window.location.href = lastPage;
         }
 
-        // Запуск музыки по первому клику[cite: 2]
         document.addEventListener('click', () => {
             if (music) music.play().catch(() => {});
         }, { once: true });
