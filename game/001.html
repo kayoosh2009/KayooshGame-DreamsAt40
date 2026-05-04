@@ -2,21 +2,218 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Сны при температуре 40</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сон — Глава 1</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Анимация появления при загрузке */
+        #fade-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            z-index: 100;
+            pointer-events: none;
+            animation: fadeInPage 2s forwards;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Задний фон с эффектом параллакса и размытия */
+        #game-bg {
+            position: fixed;
+            top: -5%; left: -5%; /* Уменьшил отступ, так как картинка теперь четче */
+            width: 110%; height: 110%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            /* Изменения здесь: */
+            filter: blur(1px) brightness(0.8) contrast(1.05); 
+            transition: background-image 1s ease-in-out, transform 0.2s ease-out;
+        }
+
+        /* Эстетичный шум */
+        .noise {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 2;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Grain_Noise.png');
+            opacity: 0.04;
+            pointer-events: none;
+        }
+
+        /* Интерфейс */
+        .game-interface {
+            position: relative;
+            z-index: 10;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 60px;
+            box-sizing: border-box;
+        }
+
+        /* Окно диалога */
+        .text-box {
+            width: 85%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.7);
+            border-left: 4px solid #fff; /* Стильная полоска слева */
+            padding: 30px;
+            color: #fff;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .text-box:hover {
+            background: rgba(10, 10, 10, 0.85);
+        }
+
+        #game-text {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        /* Выборы */
+        .choices-wrapper {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .choice-button {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+
+        .choice-button:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+        }
+
+        .hint {
+            margin-top: 15px;
+            font-size: 0.7rem;
+            opacity: 0.5;
+            text-align: right;
+            text-transform: uppercase;
+        }
+    </style>
 </head>
-<body>
-    <div id="game-container">
-        <!-- Фоновое изображение -->
-        <div id="background"></div>
-        
-        <!-- Текстовое поле -->
-        <div id="text-box">
-            <div id="dialogue"></div>
-            <div id="choices" class="hidden"></div>
+<body onkeydown="handleKeyPress(event)">
+
+    <div id="fade-overlay"></div>
+    <div id="game-bg"></div>
+    <div class="noise"></div>
+
+    <div class="game-interface">
+        <div class="choices-wrapper" id="choices-ui">
+            <!-- Кнопки вставит скрипт -->
+        </div>
+
+        <div class="text-box" id="dialog-box" onclick="nextStep()">
+            <p id="game-text">Загрузка реальности...</p>
+            <div class="hint">Нажми Пробел или Кликни</div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const bg = document.getElementById('game-bg');
+        const textDisplay = document.getElementById('game-text');
+        const choicesUI = document.getElementById('choices-ui');
+        const dialogBox = document.getElementById('dialog-box');
+
+        // Сохраняем текущую страницу как прогресс сразу при загрузке
+        localStorage.setItem('last_save', window.location.pathname);
+
+        const story = [
+            {
+                text: "Воздух кажется густым, как кисель. Температура явно выше сорока.",
+                img: "https://i.pinimg.com/736x/e6/67/08/e667081c19e9912ca2fa55c105e016fc.jpg"
+            },
+            {
+                text: "Тени на стенах начинают шевелиться. Кажется, одна из них только что моргнула.",
+                img: "https://i.pinimg.com/736x/6f/9b/a3/6f9ba3c46e3e56a6433e5c9f55e5c5f5.jpg"
+            },
+            {
+                text: "Нужно принять решение. Закрыть глаза или пойти на звук?",
+                img: "https://i.pinimg.com/736x/e6/67/08/e667081c19e9912ca2fa55c105e016fc.jpg",
+                choices: [
+                    { t: "Закрыть глаза", link: "002_sleep.html" },
+                    { t: "Идти на звук", link: "002_explore.html" }
+                ]
+            }
+        ];
+
+        let currentStep = 0;
+
+        function updateUI() {
+            const scene = story[currentStep];
+            
+            // Смена фона
+            bg.style.backgroundImage = `url('${scene.img}')`;
+            
+            // Смена текста
+            textDisplay.innerText = scene.text;
+
+            // Если есть выбор
+            if (scene.choices) {
+                dialogBox.style.display = "none";
+                choicesUI.style.display = "flex";
+                choicesUI.innerHTML = scene.choices.map(c => 
+                    `<button class="choice-button" onclick="location.href='${c.link}'">${c.t}</button>`
+                ).join('');
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < story.length - 1 && !story[currentStep].choices) {
+                currentStep++;
+                updateUI();
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.code === "Space") nextStep();
+        }
+
+        // Параллакс
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (window.innerWidth / 2 - e.pageX) / 40;
+            const moveY = (window.innerHeight / 2 - e.pageY) / 40;
+            bg.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+
+        // Старт
+        updateUI();
+    </script>
 </body>
 </html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Глава 1</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000; /* Черный фон */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 80%;
+        }
+
+        /* Стиль заголовка */
+        h1 {
+            color: #fff;
+            font-size: 3.5rem;
+            letter-spacing: 10px;
+            margin-bottom: 20px;
+            min-height: 1.2em; /* Чтобы страница не прыгала при печати */
+        }
+
+        /* Стиль описания */
+        .description {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            min-height: 1.5em;
+        }
+
+        /* Каретка (мигающая черточка) */
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            background-color: #fff;
+            margin-left: 5px;
+            animation: blink 0.7s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Экран финального перехода */
+        #fade-out {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 2s ease;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="fade-out"></div>
+
+    <div class="container">
+        <h1 id="title"></h1>
+        <div class="description" id="desc"></div>
+    </div>
+
+    <script>
+        const titleData = "ГЛАВА 1";
+        const descData = "Лихорадочный бред и тени в углу комнаты...";
+        
+        const titleEl = document.getElementById('title');
+        const descEl = document.getElementById('desc');
+        const fadeOut = document.getElementById('fade-out');
+
+        // Функция для эффекта печати
+        function typeWriter(text, element, speed, callback) {
+            let i = 0;
+            element.innerHTML = ""; // Очистка
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    setTimeout(callback, 1000); // Пауза после завершения строки
+                }
+            }
+            type();
+        }
+
+        // Запуск последовательности
+        window.onload = () => {
+            // 1. Печатаем заголовок
+            typeWriter(titleData, titleEl, 150, () => {
+                // 2. Печатаем описание
+                typeWriter(descData, descEl, 80, () => {
+                    // 3. Ждем 2 секунды и уходим в затемнение
+                    setTimeout(() => {
+                        fadeOut.style.opacity = '1';
+                        // 4. Переход на другую страницу
+                        setTimeout(() => {
+                            window.location.href = '001.html'; // УКАЖИ СВОЙ ФАЙЛ ТУТ
+                        }, 2000);
+                    }, 2000);
+                });
+            });
+        };
+    </script>
+</body>
+</html>
