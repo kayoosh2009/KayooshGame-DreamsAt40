@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Сны при температуре 40</title>
     <style>
-        /* Общие настройки */
         body, html {
             margin: 0;
             padding: 0;
@@ -19,10 +18,9 @@
             background-color: #000;
         }
 
-        /* Контейнер для заднего фона с эффектами */
         .bg-wrapper {
             position: fixed;
-            top: -5%; /* Запас для движения */
+            top: -5%;
             left: -5%;
             width: 110%;
             height: 110%;
@@ -30,12 +28,10 @@
             background-image: url('https://i.pinimg.com/736x/e6/67/08/e667081c19e9912ca2fa55c105e016fc.jpg');
             background-size: cover;
             background-position: center;
-            /* Эффект "плохого качества" и размытия */
             filter: blur(3px) contrast(1.2) saturate(0.8) brightness(0.6);
-            transition: transform 0.1s ease-out; /* Плавность движения */
+            transition: transform 0.1s ease-out;
         }
 
-        /* Наложение шума (пленочное зерно) */
         .bg-overlay {
             position: fixed;
             top: 0;
@@ -63,7 +59,6 @@
             font-size: 4rem;
             text-transform: uppercase;
             letter-spacing: 10px;
-            /* Глитч-эффект на тексте */
             text-shadow: 2px 2px 0px #ff0000, -2px -2px 0px #0000ff;
             animation: drift 10s infinite alternate, flicker 0.15s infinite;
         }
@@ -95,16 +90,15 @@
             transform: scale(1.05);
         }
 
-        /* Анимации */
         @keyframes flicker {
-            0% { opacity: 0.95; }
-            50% { opacity: 1; }
+            0%   { opacity: 0.95; }
+            50%  { opacity: 1; }
             100% { opacity: 0.9; }
         }
 
         @keyframes drift {
             from { transform: translateX(-5px); }
-            to { transform: translateX(5px); }
+            to   { transform: translateX(5px); }
         }
 
         .disabled {
@@ -115,13 +109,20 @@
 </head>
 <body>
 
-    <!-- Слой фона -->
     <div class="bg-wrapper" id="parallax-bg"></div>
-    <!-- Слой шума -->
     <div class="bg-overlay"></div>
 
+    <!-- Фоновая музыка -->
     <audio id="bg-music" loop>
         <source src="mus/background.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Звуки UI (не loop, воспроизводятся по событиям) -->
+    <audio id="snd-hover" preload="auto">
+        <source src="mus/tach.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="snd-click" preload="auto">
+        <source src="mus/click.mp3" type="audio/mpeg">
     </audio>
 
     <div class="container">
@@ -130,32 +131,66 @@
         <nav>
             <button class="pixel-button" onclick="startGame()">Играть</button>
             <button id="continue-btn" class="pixel-button" onclick="continueGame()">Продолжить</button>
-            <button class="pixel-button" onclick="window.location.href='info.html'">О разработчике</button>
+            <button class="pixel-button" onclick="goInfo()">О разработчике</button>
         </nav>
     </div>
 
     <script>
-        const music = document.getElementById('bg-music');
-        const continueBtn = document.getElementById('continue-btn');
+        const music    = document.getElementById('bg-music');
+        const sndHover = document.getElementById('snd-hover');
+        const sndClick = document.getElementById('snd-click');
+        const continuBtn = document.getElementById('continue-btn');
         const bg = document.getElementById('parallax-bg');
 
-        // Параллакс эффект для мышки
+        // ── Громкость ──────────────────────────────────────────
+        if (music)    music.volume    = 0.2;
+        if (sndHover) sndHover.volume = 0.5;
+        if (sndClick) sndClick.volume = 0.6;
+
+        // ── Звуковые хелперы ───────────────────────────────────
+        // Перематываем в начало перед воспроизведением,
+        // чтобы звук срабатывал даже при быстрых повторных наведениях
+        function playHover() {
+            if (!sndHover) return;
+            sndHover.currentTime = 0;
+            sndHover.play().catch(() => {});
+        }
+
+        function playClick() {
+            if (!sndClick) return;
+            sndClick.currentTime = 0;
+            sndClick.play().catch(() => {});
+        }
+
+        // ── Вешаем звуки на все кнопки ─────────────────────────
+        document.querySelectorAll('.pixel-button').forEach(btn => {
+            btn.addEventListener('mouseenter', playHover);
+            btn.addEventListener('click',      playClick);
+        });
+
+        // ── Параллакс ──────────────────────────────────────────
         document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.pageX) / 30;
+            const x = (window.innerWidth  / 2 - e.pageX) / 30;
             const y = (window.innerHeight / 2 - e.pageY) / 30;
             bg.style.transform = `translate(${x}px, ${y}px)`;
         });
 
-        if (music) music.volume = 0.2;
-
+        // ── Проверка сохранения ────────────────────────────────
         try {
             if (!localStorage.getItem('last_save')) {
-                continueBtn.classList.add('disabled');
+                continuBtn.classList.add('disabled');
             }
         } catch (e) {
             console.warn("LocalStorage заблокирован");
         }
 
+        // ── Запуск музыки при первом клике ────────────────────
+        // (браузеры требуют user interaction перед autoplay)
+        document.addEventListener('click', () => {
+            if (music) music.play().catch(() => {});
+        }, { once: true });
+
+        // ── Навигация ──────────────────────────────────────────
         function startGame() {
             if (music) music.play().catch(() => {});
             setTimeout(() => { window.location.href = 'game/001.html'; }, 300);
@@ -163,15 +198,13 @@
 
         function continueGame() {
             let lastPage = 'game/001.html';
-            try {
-                lastPage = localStorage.getItem('last_save') || 'game/001.html';
-            } catch (e) {}
+            try { lastPage = localStorage.getItem('last_save') || lastPage; } catch (e) {}
             window.location.href = lastPage;
         }
 
-        document.addEventListener('click', () => {
-            if (music) music.play().catch(() => {});
-        }, { once: true });
+        function goInfo() {
+            window.location.href = 'info.html';
+        }
     </script>
 </body>
 </html>
