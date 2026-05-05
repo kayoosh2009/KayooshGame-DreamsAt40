@@ -2,209 +2,166 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сны при температуре 40</title>
+    <title>System Loading</title>
     <style>
-        body, html {
+        /* Полностью черный фон */
+        body {
+            background-color: #000;
+            color: #ffffff; /* Чистый белый текст */
+            font-family: "Courier New", Courier, monospace;
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            height: 100vh;
             overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #000;
+            cursor: wait;
         }
 
-        .bg-wrapper {
-            position: fixed;
-            top: -5%;
-            left: -5%;
-            width: 110%;
-            height: 110%;
-            z-index: 0;
-            background-image: url('https://i.pinimg.com/736x/e6/67/08/e667081c19e9912ca2fa55c105e016fc.jpg');
-            background-size: cover;
-            background-position: center;
-            filter: blur(3px) contrast(1.2) saturate(0.8) brightness(0.6);
-            transition: transform 0.1s ease-out;
+        /* Контейнер для твоего котика */
+        #ascii-cat {
+            font-size: 12px; 
+            line-height: 1.2;
+            white-space: pre;
+            opacity: 0;
+            /* Плавное появление котика */
+            transition: opacity 2.5s ease-in-out;
+            margin-bottom: 40px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
         }
 
-        .bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            background: url('https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Grain_Noise.png');
-            opacity: 0.05;
-            pointer-events: none;
+        /* Блок статуса */
+        #status-container {
+            text-align: left;
+            width: 350px;
         }
 
-        .container {
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            height: 80vh;
-            z-index: 2;
-            position: relative;
-        }
-
-        h1 {
-            color: #fff;
-            font-size: 4rem;
+        .stats {
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 10px;
-            text-shadow: 2px 2px 0px #ff0000, -2px -2px 0px #0000ff;
-            animation: drift 10s infinite alternate, flicker 0.15s infinite;
-        }
-
-        nav {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 50px;
-        }
-
-        .pixel-button {
-            background-color: rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            color: #fff;
-            padding: 18px 40px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: all 0.4s ease;
-            backdrop-filter: blur(10px);
             letter-spacing: 2px;
+            margin-bottom: 8px;
         }
 
-        .pixel-button:hover {
-            background-color: #fff;
-            color: #000;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
-            transform: scale(1.05);
+        /* Белая полоска загрузки */
+        .progress-bar {
+            width: 100%;
+            height: 2px; /* Тонкая элегантная линия */
+            background: #222;
+            position: relative;
+            margin-bottom: 15px;
         }
 
-        @keyframes flicker {
-            0%   { opacity: 0.95; }
-            50%  { opacity: 1; }
-            100% { opacity: 0.9; }
+        #progress-fill {
+            height: 100%;
+            background: #ffffff; /* Белый прогресс */
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
 
-        @keyframes drift {
-            from { transform: translateX(-5px); }
-            to   { transform: translateX(5px); }
-        }
-
-        .disabled {
-            opacity: 0.2;
-            pointer-events: none;
+        #loading-text {
+            font-size: 10px;
+            color: #888; /* Вспомогательный текст чуть тусклее */
+            height: 1.2em;
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-wrapper" id="parallax-bg"></div>
-    <div class="bg-overlay"></div>
+    <!-- МЕСТО ДЛЯ ТВОЕГО КОТИКА -->
+    <pre id="ascii-cat">
+                                                                      
+                                                                      
+                                                                      
+                                               ///////                
+                                             ///     //               
+                                             /         //             
+                                             /          //            
+                                              /          /            
+                  //                           ///       //           
+                 /////                ////       //      //           
+                 /    //            //    //       //    //           
+                //     //          //      //       //   //           
+                /        //      //          /       /   /            
+               //         ////////            /     //  //            
+                                               ////////////           
+             //                                 //         //         
+            //     //                   /        //         //        
+             //            ////                  //          /        
+             //        /////   /////           ///           //       
+             //                                 //            //      
+              //////                        /////              /      
+                 /                                      ///    //     
+                 /                                   //// ///  //     
+                 /                              ///                   
+                 /     ///////////////       ///                      
+                 /   ///             //    //                         
+                 ////                 /////                           
+                                                                      
+                                                                      
+    </pre>
 
-    <!-- Фоновая музыка -->
-    <audio id="bg-music" loop>
-        <source src="mus/background.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- Звуки UI (не loop, воспроизводятся по событиям) -->
-    <audio id="snd-hover" preload="auto">
-        <source src="mus/tach.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="snd-click" preload="auto">
-        <source src="mus/click.mp3" type="audio/mpeg">
-    </audio>
-
-    <div class="container">
-        <h1>Сны при<br>температуре 40</h1>
-
-        <nav>
-            <button class="pixel-button" onclick="startGame()">Играть</button>
-            <button id="continue-btn" class="pixel-button" onclick="continueGame()">Продолжить</button>
-            <button class="pixel-button" onclick="goInfo()">О разработчике</button>
-        </nav>
+    <div id="status-container">
+        <div class="stats">
+            Status: Loading [<span id="current-count">0</span> / <span id="total-count">0</span>]
+        </div>
+        <div class="progress-bar">
+            <div id="progress-fill"></div>
+        </div>
+        <div id="loading-text">Initializing boot sequence...</div>
     </div>
 
     <script>
-        const music    = document.getElementById('bg-music');
-        const sndHover = document.getElementById('snd-hover');
-        const sndClick = document.getElementById('snd-click');
-        const continuBtn = document.getElementById('continue-btn');
-        const bg = document.getElementById('parallax-bg');
+        // Список имитируемых файлов
+        const filesToLoad = [
+            'menu.html',
+            'mus/background.mp3',
+            'mus/click.mp3',
+            'mus/tach.mp3',
+            'game/parts/chapter001.html',
+            'game/001.html'
+        ];
 
-        // ── Громкость ──────────────────────────────────────────
-        if (music)    music.volume    = 0.2;
-        if (sndHover) sndHover.volume = 0.5;
-        if (sndClick) sndClick.volume = 0.6;
+        const total = filesToLoad.length;
+        let loaded = 0;
 
-        // ── Звуковые хелперы ───────────────────────────────────
-        // Перематываем в начало перед воспроизведением,
-        // чтобы звук срабатывал даже при быстрых повторных наведениях
-        function playHover() {
-            if (!sndHover) return;
-            sndHover.currentTime = 0;
-            sndHover.play().catch(() => {});
-        }
+        const catElement = document.getElementById('ascii-cat');
+        const currentCounter = document.getElementById('current-count');
+        const totalCounter = document.getElementById('total-count');
+        const progressFill = document.getElementById('progress-fill');
+        const loadingText = document.getElementById('loading-text');
 
-        function playClick() {
-            if (!sndClick) return;
-            sndClick.currentTime = 0;
-            sndClick.play().catch(() => {});
-        }
+        totalCounter.innerText = total;
 
-        // ── Вешаем звуки на все кнопки ─────────────────────────
-        document.querySelectorAll('.pixel-button').forEach(btn => {
-            btn.addEventListener('mouseenter', playHover);
-            btn.addEventListener('click',      playClick);
-        });
+        // Проявление котика через полсекунды после старта
+        setTimeout(() => {
+            catElement.style.opacity = '1';
+        }, 500);
 
-        // ── Параллакс ──────────────────────────────────────────
-        document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth  / 2 - e.pageX) / 30;
-            const y = (window.innerHeight / 2 - e.pageY) / 30;
-            bg.style.transform = `translate(${x}px, ${y}px)`;
-        });
+        function updateLoading() {
+            if (loaded < total) {
+                loadingText.innerText = `Fetching: ${filesToLoad[loaded]}`;
+                loaded++;
+                
+                currentCounter.innerText = loaded;
+                const percent = (loaded / total) * 100;
+                progressFill.style.width = percent + '%';
 
-        // ── Проверка сохранения ────────────────────────────────
-        try {
-            if (!localStorage.getItem('last_save')) {
-                continuBtn.classList.add('disabled');
+                // Случайная задержка для эффекта "реальной" работы
+                setTimeout(updateLoading, Math.random() * 600 + 400);
+            } else {
+                loadingText.innerText = "Access Granted. Redirecting...";
+                loadingText.style.color = "#fff";
+                
+                setTimeout(() => {
+                    window.location.href = 'menu.html';
+                }, 1200);
             }
-        } catch (e) {
-            console.warn("LocalStorage заблокирован");
         }
 
-        // ── Запуск музыки при первом клике ────────────────────
-        // (браузеры требуют user interaction перед autoplay)
-        document.addEventListener('click', () => {
-            if (music) music.play().catch(() => {});
-        }, { once: true });
-
-        // ── Навигация ──────────────────────────────────────────
-        function startGame() {
-            if (music) music.play().catch(() => {});
-            setTimeout(() => { window.location.href = 'game/001.html'; }, 300);
-        }
-
-        function continueGame() {
-            let lastPage = 'game/001.html';
-            try { lastPage = localStorage.getItem('last_save') || lastPage; } catch (e) {}
-            window.location.href = lastPage;
-        }
-
-        function goInfo() {
-            window.location.href = 'info.html';
-        }
+        window.onload = updateLoading;
     </script>
 </body>
 </html>
